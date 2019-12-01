@@ -1,0 +1,97 @@
+---
+title: "UK GDP Deflator"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+## Deflator
+
+The [Green Book](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/685903/The_Green_Book.pdf) stipulates (p.23) that
+
+> Costs and benefits in appraisal of social value should be estimated in ‘real’ base year prices
+(i.e. the first year of the proposal). This means the effects of general inflation should be removed. 
+
+> For short time horizons, whole economy inflation (the “GDP deflator”) from the most
+recent forecasts by the Office for Budget Responsibility (OBR)
+
+The latest [GDP deflators for 2019](https://www.gov.uk/government/statistics/gdp-deflators-at-market-prices-and-money-gdp-march-2019-quarterly-national-accounts) are available from GOV.UK as an [Excel spreadsheet](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/835509/GDP_Deflators_Qtrly_National_Accounts_September_2019_update.xlsx).
+
+### Download the deflators
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(fs)
+
+temp_file <- fs::file_temp()
+
+download.file("https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/835509/GDP_Deflators_Qtrly_National_Accounts_September_2019_update.xlsx", temp_file)
+
+gdp_deflator <-
+  read_excel(
+    temp_file,
+    range = "B9:D76",
+    col_names = c(
+      "financial_year",
+      "skip",
+      "percent_change"
+    ),
+    col_types = c("text", "skip", "numeric")
+  ) %>%
+  mutate(financial_year = as.integer(str_sub(financial_year, 1L, 4L)),
+         percent_change = percent_change / 100 + 1)
+```
+
+### Use the deflators
+
+```{r}
+#' Inflate or Deflate by GDP
+#'
+#' @param price in pounds (GBP, numeric)
+#' @param from financial year of the price (numeric, `2018` is the
+#' 2018/19 financial year)
+#' @param to financial year to inflate to (integer, `2019` is the
+#' 2019/20 financial year)
+#'
+#' @examples
+#' x <- flate_gdp(100, from = 2017, to = 2019)
+#' x
+#' flate_gdp(x, from = 2019, to = 2017)
+#' @export
+flate_gdp <- function(price, from, to) {
+  stopifnot(is.numeric(price))
+  stopifnot(is.numeric(from))
+  stopifnot(is.numeric(to))
+
+  inflator <-
+    gdp_deflator %>%
+    dplyr::filter(financial_year > min(from, to), 
+                  financial_year <= max(from, to)) %>%
+    dplyr::pull(percent_change) %>%
+    cumprod() %>%
+    tail(1L)
+  
+  if (to > from) {
+    price * inflator
+  } else {
+    price / inflator
+  }
+}
+
+flate_gdp(100, 2017, 2019)
+flate_gdp(103.9335, 2019, 2017)
+```
+
