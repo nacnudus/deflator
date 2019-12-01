@@ -15,3 +15,5 @@ RoxygenNote: 7.0.1
 Imports: 
     dplyr,
     magrittr
+URL: https://github.com/nacnudus/deflator
+BugReports: https://github.com/nacnudus/deflator/issues
