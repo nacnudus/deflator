@@ -7,10 +7,10 @@
 
 <!-- badges: end -->
 
-The deflator is a demonstration of how to create a simple package. It
-has one function, `flate_gdp()`, for inflating or deflating UK prices by
-GDP. It also has one dataset, `gdp_deflator`, which is a data frame of
-year-on-year inflation rates published on
+The {deflator} package is a demonstration of how to create a simple
+package. It has one function, `flate_gdp()`, for inflating or deflating
+UK prices by GDP. It also has one dataset, `gdp_deflator`, which is a
+data frame of year-on-year inflation rates published on
 [GOV.UK](https://www.gov.uk/government/statistics/gdp-deflators-at-market-prices-and-money-gdp-march-2019-quarterly-national-accounts).
 
 ## Installation
