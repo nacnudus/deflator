@@ -19,7 +19,7 @@ You can install from [github](https://github.com/nacnudus/deflator)
 with:
 
 ``` r
-devtools::install_github("deflator")
+devtools::install_github("nacnudus/deflator")
 ```
 
 ## Example
